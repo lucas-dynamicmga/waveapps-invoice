@@ -1,0 +1,44 @@
+{
+  "annotations": {
+    "changelogDate": "20250117014544"
+  },
+  "applications": "*",
+  "databaseType": "sql",
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "identifier",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "description",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "createdBy",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "createdDate",
+      "fieldType": "Instant"
+    },
+    {
+      "fieldName": "lastModifiedBy",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "lastModifiedDate",
+      "fieldType": "Instant"
+    },
+    {
+      "fieldName": "status",
+      "fieldType": "QuoteStatus",
+      "fieldValues": "CREATED (Created),IN_PROCESS (In Process),READY (Ready),BOUND (Bound)"
+    }
+  ],
+  "name": "Quote",
+  "pagination": "infinite-scroll",
+  "relationships": [],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}

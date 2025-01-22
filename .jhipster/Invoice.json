@@ -1,0 +1,50 @@
+{
+  "annotations": {
+    "changelogDate": "20250121132725"
+  },
+  "applications": "*",
+  "databaseType": "sql",
+  "dto": "mapstruct",
+  "fields": [
+    {
+      "fieldName": "invoiceId",
+      "fieldType": "Long"
+    },
+    {
+      "fieldName": "agencyId",
+      "fieldType": "Long"
+    },
+    {
+      "fieldName": "statusId",
+      "fieldType": "Long"
+    },
+    {
+      "fieldName": "title",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "subhead",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "invoiceNumber",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "poNumber",
+      "fieldType": "String"
+    },
+    {
+      "fieldName": "dueData",
+      "fieldType": "Instant"
+    },
+    {
+      "fieldName": "pdfUrl",
+      "fieldType": "String"
+    }
+  ],
+  "name": "Invoice",
+  "relationships": [],
+  "searchEngine": "no",
+  "service": "serviceClass"
+}

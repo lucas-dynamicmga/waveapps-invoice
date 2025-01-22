@@ -1,0 +1,30 @@
+{
+  "newApp": {
+    "quote": {
+      "home": {
+        "title": "Quotes",
+        "refreshListLabel": "Refresh list",
+        "createLabel": "Create a new Quote",
+        "createOrEditLabel": "Create or edit a Quote",
+        "notFound": "No Quotes found"
+      },
+      "created": "A new Quote is created with identifier {{ param }}",
+      "updated": "A Quote is updated with identifier {{ param }}",
+      "deleted": "A Quote is deleted with identifier {{ param }}",
+      "delete": {
+        "question": "Are you sure you want to delete Quote {{ id }}?"
+      },
+      "detail": {
+        "title": "Quote"
+      },
+      "id": "ID",
+      "identifier": "Identifier",
+      "description": "Description",
+      "createdBy": "Created By",
+      "createdDate": "Created Date",
+      "lastModifiedBy": "Last Modified By",
+      "lastModifiedDate": "Last Modified Date",
+      "status": "Status"
+    }
+  }
+}

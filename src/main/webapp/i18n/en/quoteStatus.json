@@ -1,0 +1,11 @@
+{
+  "newApp": {
+    "QuoteStatus": {
+      "null": "",
+      "CREATED": "Created",
+      "IN_PROCESS": "In Process",
+      "READY": "Ready",
+      "BOUND": "Bound"
+    }
+  }
+}

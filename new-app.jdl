@@ -1,0 +1,40 @@
+enum QuoteStatus {
+    CREATED("Created")
+    IN_PROCESS("In Process")
+    READY("Ready")
+    BOUND("Bound")
+}
+
+entity Quote {
+    identifier String
+    description String
+    createdBy String
+    createdDate Instant
+    lastModifiedBy String
+    lastModifiedDate Instant
+    status QuoteStatus
+}
+
+entity Invoice{
+    invoiceId Long   
+    agencyId Long
+    statusId Long
+    title String
+    subhead String
+    invoiceNumber String
+    poNumber String
+    dueData Instant
+    pdfUrl String
+}
+
+// Set pagination options
+paginate Quote with infinite-scroll
+
+// Use Data Transfer Objects (DTO)
+dto * with mapstruct
+
+// Set service options to all except few
+// service all with serviceImpl
+
+// Set an angular suffix
+// angularSuffix * with mySuffix
