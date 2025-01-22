@@ -245,5 +245,5 @@ jhipster:
 waveapps:
   api:
     url: https://gql.waveapps.com/graphql/public
-    token: BOTSgc6RCE122cWQjeLcBFgEZt9ykG
-    business-id: QnVzaW5lc3M6MDE3NzQ3YTctM2E4Zi00OWU0LTg3MTMtMjVjMjcyOTQ5MjBl
+    token: secret
+    business-id: secret
