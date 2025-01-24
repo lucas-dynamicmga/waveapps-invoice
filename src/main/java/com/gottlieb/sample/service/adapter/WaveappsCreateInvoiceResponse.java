@@ -2,11 +2,14 @@ package com.gottlieb.sample.service.adapter;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class WaveappsCreateInvoiceResponse {
-    private Data data;
 
-    // Getters and setters
+    private Data data;
+    private List<Error> errors;
+
     public Data getData() {
         return data;
     }
@@ -15,12 +18,20 @@ public class WaveappsCreateInvoiceResponse {
         this.data = data;
     }
 
+    public List<Error> getErrors() {
+        return errors;
+    }
+
+    public void setErrors(List<Error> errors) {
+        this.errors = errors;
+    }
+
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Data {
+
         @JsonProperty("invoiceCreate")
         private InvoiceCreate invoiceCreate;
 
-        // Getters and setters
         public InvoiceCreate getInvoiceCreate() {
             return invoiceCreate;
         }
@@ -32,11 +43,11 @@ public class WaveappsCreateInvoiceResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class InvoiceCreate {
+
         private boolean didSucceed;
-        private Object inputErrors; // Use a specific class if errors have a structure
+        private Object inputErrors;
         private Invoice invoice;
 
-        // Getters and setters
         public boolean isDidSucceed() {
             return didSucceed;
         }
@@ -64,12 +75,12 @@ public class WaveappsCreateInvoiceResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Invoice {
+
         private String id;
         private String pdfUrl;
         private String status;
         private Total total;
 
-        // Getters and setters
         public String getId() {
             return id;
         }
@@ -105,10 +116,10 @@ public class WaveappsCreateInvoiceResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Total {
+
         private String value;
         private Currency currency;
 
-        // Getters and setters
         public String getValue() {
             return value;
         }
@@ -128,15 +139,29 @@ public class WaveappsCreateInvoiceResponse {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Currency {
+
         private String symbol;
 
-        // Getters and setters
         public String getSymbol() {
             return symbol;
         }
 
         public void setSymbol(String symbol) {
             this.symbol = symbol;
+        }
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Error {
+
+        private String message;
+
+        public String getMessage() {
+            return message;
+        }
+
+        public void setMessage(String message) {
+            this.message = message;
         }
     }
 }

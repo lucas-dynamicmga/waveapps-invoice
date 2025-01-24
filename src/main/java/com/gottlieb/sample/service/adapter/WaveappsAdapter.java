@@ -1,137 +1,138 @@
 package com.gottlieb.sample.service.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gottlieb.sample.service.dto.InvoiceRequestDTO;
 import com.gottlieb.sample.service.dto.InvoiceResponseDTO;
-
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+@Service("waveapps")
+public class WaveappsAdapter implements InvoiceAdapterInterface {
 
-@Component
-public class WaveappsAdapter implements InvoiceAdapter {
+    private static final Logger LOG = LoggerFactory.getLogger(WaveappsAdapter.class);
 
-    private static final Logger logger = LoggerFactory.getLogger(WaveappsAdapter.class);
-
-    @Value("${waveapps.api.url}")
+    @Value("${apis.invoices.waveapps.url}")
     private String waveappsUrl;
 
-    @Value("${waveapps.api.token}")
+    @Value("${apis.invoices.waveapps.token}")
     private String apiToken;
 
-    @Value("${waveapps.api.business-id}")
+    @Value("${apis.invoices.waveapps.business-id}")
     private String businessId;
 
     @Override
     public Mono<InvoiceResponseDTO> createInvoice(InvoiceRequestDTO request) {
-        logger.info("Creating invoice for request: {}", request);
-      
-        // String customerId = "QnVzaW5lc3M6MDE3NzQ3YTctM2E4Zi00OWU0LTg3MTMtMjVjMjcyOTQ5MjBlO0N1c3RvbWVyOjg0NjkxODUx"; 
+        LOG.debug("WaveappsAdapter - creating invoice for request: {}", request);
+
         String customerId = request.getAccount().getGeneralLedgerId();
+        String invoiceNumber = request.getReferenceNumber();
 
-        // GraphQL.
-        String query = """
-            mutation ($input: InvoiceCreateInput!) {
-              invoiceCreate(input: $input) {
-                didSucceed
-                inputErrors {
-                  message
-                  code
-                  path
-                }
-                invoice {
-                  id
-                  pdfUrl
-                }
-              }
-            }
-        """;
+        String query =
+            "mutation ($input: InvoiceCreateInput!) { invoiceCreate(input: $input) { didSucceed inputErrors { message code path } invoice { id pdfUrl status total { value currency { symbol } } } } }";
 
-        List<WaveappsItem> items = request.getItems().stream()
-                .map(v2Item -> new WaveappsItem(
-                        v2Item.getProduct().getGeneralLedgerId(),
-                        v2Item.getQuantity(),
-                        v2Item.getUnitPrice().doubleValue()
-                ))
-                .collect(Collectors.toList());
+        List<WaveappsItem> items = request
+            .getItems()
+            .stream()
+            .map(v2Item ->
+                new WaveappsItem(v2Item.getProduct().getGeneralLedgerId(), v2Item.getQuantity(), v2Item.getUnitPrice().doubleValue())
+            )
+            .collect(Collectors.toList());
 
-      // Right here is where we map our definition of an INvocice Request into what is expected by WaveApps. This is the whole purpose of the adapter (which is to âdapt^)
-      Map<String, Object> input = Map.of(
-        "businessId", businessId,
-        "customerId", customerId,
-        "items", items
-         );
-    
+        Map<String, Object> input = Map.of(
+            "businessId",
+            businessId,
+            "customerId",
+            customerId,
+            "items",
+            items,
+            "invoiceNumber",
+            invoiceNumber
+        );
 
-        // Payload final
         Map<String, Object> payload = Map.of("query", query, "variables", Map.of("input", input));
-        logger.info("Payload enviado para WaveApps: {}", payload);
 
-      //Initializes the response dto
-        InvoiceResponseDTO businessResponse = new InvoiceResponseDTO();
+        ObjectMapper objectMapper = new ObjectMapper();
 
-      // Make the call to wave apps using regular http call (does not need to be reactor -use the non-reactive web client.
-      // WebClient.ResponseSpec waveAppsRawResponse = createWebClient().post().bodyValue(payload).retrieve();
+        try {
+            String jsonPayload = objectMapper.writeValueAsString(payload);
+            LOG.debug("jsonPayload {}", jsonPayload);
 
-      return createWebClient().post().bodyValue(payload)
-      .retrieve().bodyToMono(WaveappsCreateInvoiceResponse.class)
-      .map(rawResponse -> {businessResponse.setInvoiceId("123456"); return businessResponse;});    
+            InvoiceResponseDTO businessResponse = new InvoiceResponseDTO();
 
+            Mono<WaveappsCreateInvoiceResponse> rawResponse = createWebClient()
+                .post()
+                .bodyValue(jsonPayload)
+                .retrieve()
+                .bodyToMono(WaveappsCreateInvoiceResponse.class);
 
-
+            return rawResponse
+                .doOnError(error -> LOG.error("Error occurred while creating invoice: {}", error.getMessage()))
+                .onErrorResume(error -> Mono.error(new RuntimeException("WaveApps API call failed", error)))
+                .flatMap(resp -> {
+                    if (
+                        resp.getData() != null &&
+                        resp.getData().getInvoiceCreate() != null &&
+                        resp.getData().getInvoiceCreate().isDidSucceed()
+                    ) {
+                        businessResponse.setInvoiceId(resp.getData().getInvoiceCreate().getInvoice().getId());
+                        businessResponse.setDocumentUrl(resp.getData().getInvoiceCreate().getInvoice().getPdfUrl());
+                        businessResponse.setInvoiceStatus(resp.getData().getInvoiceCreate().getInvoice().getStatus());
+                        return Mono.just(businessResponse);
+                    } else {
+                        String errorMessages = consolidateErrors(resp);
+                        LOG.error("Failed to create invoice. Errors: {}", errorMessages);
+                        return Mono.error(new RuntimeException("Failed to create invoice: " + errorMessages));
+                    }
+                });
+        } catch (JsonProcessingException e) {
+            LOG.error("Failed to process JSON payload", e);
+            return Mono.error(new RuntimeException("Failed to process JSON payload", e));
+        }
     }
 
-    /**
-     * Dynamically creates a WebClient instance.
-     *
-     * @return a new instance of WebClient
-     */
     private WebClient createWebClient() {
         return WebClient.builder()
-                .baseUrl(waveappsUrl)
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiToken)
-                .build();
+            .baseUrl(waveappsUrl)
+            .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+            .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + apiToken)
+            .build();
     }
 
-    private class WaveappsItem{
-        private String productID;
-        private Integer quantity;
-        private Double unitPrice;  
+    private String consolidateErrors(WaveappsCreateInvoiceResponse response) {
+        StringBuilder errorMessages = new StringBuilder();
 
-        private WaveappsItem(String productID, Integer quantity, Double unitPrice) {  
-            this.productID = productID;
-            this.quantity = quantity;
-            this.unitPrice = unitPrice;
-        }
-
-        public String getProductID() {
-            return productID;
-        }
-        public void setProductID(String productID) {
-            this.productID = productID;
-        }
-        public Integer getQuantity() {
-            return quantity;
+        if (response.getErrors() != null && !response.getErrors().isEmpty()) {
+            response
+                .getErrors()
+                .forEach(error -> {
+                    errorMessages.append("Error: ").append(error.getMessage()).append("\n");
+                });
         }
 
-        public void setQuantity(Integer quantity) {
-            this.quantity = quantity;
+        if (response.getData() != null && response.getData().getInvoiceCreate() != null) {
+            if (response.getData().getInvoiceCreate().getInputErrors() instanceof List<?>) {
+                List<?> inputErrors = (List<?>) response.getData().getInvoiceCreate().getInputErrors();
+                inputErrors.forEach(inputError -> {
+                    if (inputError instanceof Map) {
+                        Object message = ((Map<?, ?>) inputError).get("message");
+                        if (message != null) {
+                            errorMessages.append("Input Error: ").append(message).append("\n");
+                        }
+                    }
+                });
+            }
         }
 
-        public Double getUnitPrice() {
-            return unitPrice;
-        }
-        public void setUnitPrice(Double unitPrice) {
-            this.unitPrice = unitPrice;
-        }
+        return errorMessages.toString().isEmpty() ? "Unknown error occurred." : errorMessages.toString();
     }
 }
