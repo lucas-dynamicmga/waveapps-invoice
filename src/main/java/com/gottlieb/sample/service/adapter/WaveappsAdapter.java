@@ -118,7 +118,7 @@ public class WaveappsAdapter implements InvoiceAdapterInterface {
                     errorMessages.append("Error: ").append(error.getMessage()).append("\n");
                 });
         }
-
+        //test change
         if (response.getData() != null && response.getData().getInvoiceCreate() != null) {
             if (response.getData().getInvoiceCreate().getInputErrors() instanceof List<?>) {
                 List<?> inputErrors = (List<?>) response.getData().getInvoiceCreate().getInputErrors();
