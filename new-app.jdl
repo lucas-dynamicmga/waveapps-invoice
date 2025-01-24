@@ -28,7 +28,7 @@ entity Invoice{
 }
 
 // Set pagination options
-paginate Quote with infinite-scroll
+paginate Quote with infinite-scroll test att
 
 // Use Data Transfer Objects (DTO)
 dto * with mapstruct
