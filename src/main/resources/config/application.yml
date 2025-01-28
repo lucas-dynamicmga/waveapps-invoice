@@ -249,3 +249,9 @@ apis:
       url: https://gql.waveapps.com/graphql/public
       token: BOTSgc6RCE122cWQjeLcBFgEZt9ykG
       business-id: QnVzaW5lc3M6MDE3NzQ3YTctM2E4Zi00OWU0LTg3MTMtMjVjMjcyOTQ5MjBl
+  motorCarrier:
+    activeService: cab
+    cab:
+      base-url: https://ws.cabadvantage.com/rest/services/prestige/carrier/
+      key: 5HEMgvYAAMDYhL9UTLNmOANlqPNhFU6EynbdE4C6gvIzL5QJ1e
+      vin-base-url: https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVin/
